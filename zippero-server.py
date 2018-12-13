@@ -1,10 +1,18 @@
+from jsonschema import validate
 from tornado import ioloop, web, escape
-
 global_repo = [
     {'id': 1, 'code': 'dupa'}
 ]
 
 last_id = 1
+
+schema = {
+    'type': 'object',
+    'properties': {
+        'id': {'type' : 'number'},
+        'code': {'type': 'string'}
+    }
+}
 
 class HelloHandler(web.RequestHandler):
     def get(self):
@@ -13,6 +21,9 @@ class HelloHandler(web.RequestHandler):
     def post(self):
         body = self.request.body
         payload = escape.json_decode(body)
+
+        validate(payload, schema)
+
         global_repo.append(payload)
 
 
