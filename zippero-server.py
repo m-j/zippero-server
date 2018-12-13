@@ -1,0 +1,27 @@
+from tornado import ioloop, web, escape
+
+global_repo = [
+    {'id': 1, 'code': 'dupa'}
+]
+
+last_id = 1
+
+class HelloHandler(web.RequestHandler):
+    def get(self):
+         self.finish({'entries': global_repo})
+
+    def post(self):
+        body = self.request.body
+        payload = escape.json_decode(body)
+        global_repo.append(payload)
+
+
+def create_tornado_app():
+    return web.Application([
+        (r'/hello', HelloHandler),
+    ])
+
+if __name__ == '__main__':
+    app = create_tornado_app()
+    app.listen(port=7001)
+    ioloop.IOLoop.current().start()
