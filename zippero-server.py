@@ -15,10 +15,10 @@ schema = {
 }
 
 class HelloHandler(web.RequestHandler):
-    def get(self):
+    async def get(self):
          self.finish({'entries': global_repo})
 
-    def post(self):
+    async def post(self):
         body = self.request.body
         payload = escape.json_decode(body)
 
