@@ -1,5 +1,10 @@
 from jsonschema import validate
 from tornado import ioloop, web, escape
+
+from utils import load_config
+
+config = load_config.load_config()
+
 global_repo = [
     {'id': 1, 'code': 'dupa'}
 ]
@@ -34,5 +39,5 @@ def create_tornado_app():
 
 if __name__ == '__main__':
     app = create_tornado_app()
-    app.listen(port=7001)
+    app.listen(port=config['server']['port'])
     ioloop.IOLoop.current().start()
