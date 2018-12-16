@@ -1,6 +1,7 @@
 from jsonschema import validate
 from tornado import ioloop, web, escape
 
+from package_management.data_scanner import scan_data_directory
 from utils import load_config
 
 config = load_config.load_config()
@@ -37,7 +38,14 @@ def create_tornado_app():
         (r'/hello', HelloHandler),
     ])
 
-if __name__ == '__main__':
+def start_server():
     app = create_tornado_app()
     app.listen(port=config['server']['port'])
     ioloop.IOLoop.current().start()
+
+def main():
+    scan_data_directory(config['repository']['dataFolder'])
+
+if __name__ == '__main__':
+    main()
+
