@@ -11,7 +11,7 @@ def packages_metadata_from_versions(name: str, semvers: List[str]):
 
 class PackageManager:
     _data_dir_path: str
-    _package_infos: Dict[str, List[PackageInfo]]
+    _package_infos: Dict[str, PackageInfo]
 
     def __init__(self, data_dir_path: str):
         self._data_dir_path = data_dir_path
@@ -24,3 +24,5 @@ class PackageManager:
     def query(self, package_name: str = None, version: str = None) -> PackageInfo:
         if package_name is not None:
             return copy.deepcopy(self._package_infos[package_name])
+        else:
+            raise ValueError('Wrong parameter')

@@ -1,5 +1,5 @@
 from dataclasses import dataclass, asdict
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 
 @dataclass(frozen=True)
@@ -16,7 +16,7 @@ class PackageMetadata:
 class PackageInfo:
     name: str
     versions: List[str]
-    links: Dict[str, str]
+    links: Optional[Dict[str, str]]
 
     def as_dict(self):
         return asdict(self)
