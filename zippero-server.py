@@ -2,6 +2,7 @@ from jsonschema import validate
 from tornado import ioloop, web, escape
 
 from handlers.hello_handler import HelloHandler
+from handlers.package_info_handler import PackageInfoHandler
 from handlers.packages_handler import PackagesHandler
 
 from package_management.package_manager import PackageManager
@@ -16,6 +17,7 @@ def create_tornado_app():
 
     return web.Application([
         (r'/hello', HelloHandler),
+        (r'/package-info', PackageInfoHandler, {'package_manager': package_manager}),
         (r'/packages', PackagesHandler, {'package_manager': package_manager})
     ])
 

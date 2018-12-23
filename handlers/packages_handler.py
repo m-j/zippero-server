@@ -1,6 +1,5 @@
 from tornado.web import RequestHandler
 
-from handlers.handler_utils import wrap_in_envelope
 from package_management.package_manager import PackageManager
 
 
@@ -9,14 +8,3 @@ class PackagesHandler(RequestHandler):
 
     def initialize(self, package_manager):
         self.package_manager = package_manager
-
-    async def get(self):
-        packages = self.package_manager.query(package_name='test.packageA')
-
-        response = [p.as_dict() for p in packages]
-
-        self.finish(wrap_in_envelope(response))
-
-        # todo: This endpoint should be returning list of objects with links
-        # todo: Metadata and actual zip files should be separate concepts
-
