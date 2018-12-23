@@ -12,7 +12,10 @@ class PackagesHandler(RequestHandler):
 
     async def get(self):
         packages = self.package_manager.query(package_name='test.packageA')
-        self.finish(wrap_in_envelope(packages))
+
+        response = [p.as_dict() for p in packages]
+
+        self.finish(wrap_in_envelope(response))
 
         # todo: This endpoint should be returning list of objects with links
         # todo: Metadata and actual zip files should be separate concepts

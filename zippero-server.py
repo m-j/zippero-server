@@ -2,7 +2,7 @@ from jsonschema import validate
 from tornado import ioloop, web, escape
 
 from handlers.hello_handler import HelloHandler
-from handlers.packages_hanler import PackagesHandler
+from handlers.packages_handler import PackagesHandler
 
 from package_management.package_manager import PackageManager
 from utils import load_config
