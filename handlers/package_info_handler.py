@@ -10,10 +10,13 @@ class PackageInfoHandler(RequestHandler):
     def initialize(self, package_manager):
         self.package_manager = package_manager
 
-    async def get(self):
-        package_info = self.package_manager.query(package_name='test.packageA')
+    async def get(self, package_name):
+        package_info = self.package_manager.query(package_name=package_name)
 
-        self.finish(wrap_in_envelope(package_info.as_dict()))
+        if package_info is not None:
+            self.finish(wrap_in_envelope(package_info.as_dict()))
+        else:
+            self.write_error(404)
 
         # todo: This endpoint should be returning list of objects with links
         # todo: Metadata and actual zip files should be separate concepts

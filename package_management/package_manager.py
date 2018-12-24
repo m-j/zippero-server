@@ -1,6 +1,6 @@
 import copy
 from dataclasses import dataclass, asdict
-from typing import List, Dict
+from typing import List, Dict, Optional
 from package_management.data_scanning import scan_data_directory
 from package_management.model import PackageMetadata, PackageInfo
 
@@ -21,8 +21,12 @@ class PackageManager:
         # todo: validate integirty here in a future
         self._package_infos = package_infos
 
-    def query(self, package_name: str = None, version: str = None) -> PackageInfo:
+    def query(self, package_name: str = None, version: str = None) -> Optional[PackageInfo]:
         if package_name is not None:
-            return copy.deepcopy(self._package_infos[package_name])
+            if package_name in self._package_infos:
+                package_info = self._package_infos[package_name]
+                return copy.deepcopy(package_info)
+            else:
+                return None
         else:
             raise ValueError('Wrong parameter')

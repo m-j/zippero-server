@@ -17,7 +17,7 @@ def create_tornado_app():
 
     return web.Application([
         (r'/hello', HelloHandler),
-        (r'/package-info', PackageInfoHandler, {'package_manager': package_manager}),
+        (r'/package-info/(?P<package_name>[^/]+)', PackageInfoHandler, {'package_manager': package_manager}),
         (r'/packages', PackagesHandler, {'package_manager': package_manager})
     ])
 
