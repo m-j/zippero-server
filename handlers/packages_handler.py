@@ -8,3 +8,11 @@ class PackagesHandler(RequestHandler):
 
     def initialize(self, package_manager):
         self.package_manager = package_manager
+
+    def post(self):
+        self.request.files[]
+
+
+        self.clear()
+        self.set_status(201)
+        self.finish()

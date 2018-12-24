@@ -1,1 +1,0 @@
-Im 1.0.0 version of test.packageA

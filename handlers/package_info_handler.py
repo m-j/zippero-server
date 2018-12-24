@@ -16,7 +16,7 @@ class PackageInfoHandler(RequestHandler):
         if package_info is not None:
             self.finish(wrap_in_envelope(package_info.as_dict()))
         else:
-            self.write_error(404)
+            self.send_error(404)
 
         # todo: This endpoint should be returning list of objects with links
         # todo: Metadata and actual zip files should be separate concepts
