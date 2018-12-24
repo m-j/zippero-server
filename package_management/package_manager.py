@@ -14,12 +14,6 @@ def packages_metadata_from_versions(name: str, semvers: List[str]):
     return [PackageMetadata(name=name, semver=semver) for semver in semvers]
 
 
-def save_file_body_to_temporary_file(b: bytes) -> str:
-    with tempfile.NamedTemporaryFile(delete=False) as tmp:
-        tmp.write(b)
-        return tmp.name
-
-
 class PackageManager:
     _data_dir_path: str
     _package_infos: Dict[str, PackageInfo]
@@ -42,12 +36,8 @@ class PackageManager:
         else:
             raise ValueError('Wrong parameter')
 
-    def _add_package_sync(self, body: bytes):
-        temp_file_path = save_file_body_to_temporary_file(body)
+    async def add_package(self, temp_file_path: str):
         print(temp_file_path)
-
-    async def add_package(self, body: bytes):
-        await IOLoop.current().run_in_executor(None, self._add_package_sync, body)
 
 
 
