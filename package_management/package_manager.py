@@ -1,12 +1,23 @@
 import copy
+import tempfile
 from dataclasses import dataclass, asdict
 from typing import List, Dict, Optional
+
+from tornado.httputil import HTTPFile
+from tornado.ioloop import IOLoop
+
 from package_management.data_scanning import scan_data_directory
 from package_management.model import PackageMetadata, PackageInfo
 
 
 def packages_metadata_from_versions(name: str, semvers: List[str]):
     return [PackageMetadata(name=name, semver=semver) for semver in semvers]
+
+
+def save_file_body_to_temporary_file(b: bytes) -> str:
+    with tempfile.NamedTemporaryFile(delete=False) as tmp:
+        tmp.write(b)
+        return tmp.name
 
 
 class PackageManager:
@@ -30,3 +41,13 @@ class PackageManager:
                 return None
         else:
             raise ValueError('Wrong parameter')
+
+    def _add_package_sync(self, body: bytes):
+        temp_file_path = save_file_body_to_temporary_file(body)
+        print(temp_file_path)
+
+    async def add_package(self, body: bytes):
+        await IOLoop.current().run_in_executor(None, self._add_package_sync, body)
+
+
+

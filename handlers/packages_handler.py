@@ -1,3 +1,4 @@
+from tornado.httputil import HTTPFile
 from tornado.web import RequestHandler
 import tempfile
 
@@ -10,13 +11,10 @@ class PackagesHandler(RequestHandler):
     def initialize(self, package_manager):
         self.package_manager = package_manager
 
-    def post(self):
-        file = self.request.files['package'][0]
-        original_filename = file['filename']
+    async def post(self):
+        file: HTTPFile = self.request.files['package'][0]
 
-        with tempfile.NamedTemporaryFile(delete=False) as tmp:
-            tmp.write(file['body'])
-            print(f'file uploaded: {tmp.name}')
+        await self.package_manager.add_package(file['body'])
 
         self.clear()
         self.set_status(201)
