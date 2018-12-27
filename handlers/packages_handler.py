@@ -3,6 +3,7 @@ from tornado.ioloop import IOLoop
 from tornado.web import RequestHandler
 import tempfile
 
+from package_management.errors import PackageAlreadExistsError
 from package_management.package_manager import PackageManager
 
 
@@ -26,14 +27,13 @@ class PackagesHandler(RequestHandler):
     async def post(self):
         file: HTTPFile = self.request.files['package'][0]
 
-        temp_file_path = await save_file_body_to_temporary_file_async(file['body'])
-        await self.package_manager.add_package(temp_file_path)
-
-        # 1. receive temp file
-        # 2. read metadata file, parse it and store it in mem
-        # 3. craete appropriate diractories structure for package version
-        # 4. move temp file to new directory and create metadata file
-
-        self.clear()
-        self.set_status(201)
-        self.finish()
+        try:
+            self.clear()
+            temp_file_path = await save_file_body_to_temporary_file_async(file['body'])
+            await self.package_manager.add_package(temp_file_path)
+            self.set_status(201)
+        except PackageAlreadExistsError as ex:
+            self.set_status(400)
+            self.write(f'Package {ex.package_name} in version {ex.package_version} already exists')
+        finally:
+            self.finish()

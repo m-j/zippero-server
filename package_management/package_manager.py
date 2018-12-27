@@ -2,6 +2,7 @@ import copy
 import json
 import os
 from dataclasses import dataclass, asdict
+from threading import Lock
 from typing import List, Dict, Optional
 from zipfile import ZipFile
 
@@ -12,6 +13,7 @@ from package_management import data_paths
 from package_management.constants import zpspec_filename, package_name_key, version_key
 from package_management.data_paths import get_packages_path
 from package_management.data_scanning import scan_data_directory
+from package_management.errors import PackageAlreadExistsError
 from package_management.model import PackageMetadata, PackageInfo
 
 
@@ -30,9 +32,11 @@ def parse_zpfile(temp_file_path: str):
 class PackageManager:
     _data_dir_path: str
     _package_infos: Dict[str, PackageInfo]
+    _package_infos_lock: Lock
 
     def __init__(self, data_dir_path: str):
         self._data_dir_path = data_dir_path
+        self._package_infos_lock = Lock()
 
     def scan(self):
         package_infos = scan_data_directory(self._data_dir_path)
@@ -59,6 +63,9 @@ class PackageManager:
         package_version_file_path = os.path.join(package_version_dir_path, f'{package_name}.zip')
         package_version_zpspec_path = os.path.join(package_version_dir_path, zpspec_filename)
 
+        if package_name in self._package_infos and version in self._package_infos[package_name].versions:
+            raise PackageAlreadExistsError(package_name=package_name, package_version=version)
+
         try:
             os.makedirs(package_version_dir_path, exist_ok=False)
         except OSError as err:
@@ -69,11 +76,12 @@ class PackageManager:
         with open(package_version_zpspec_path, mode='wt') as zpspec_file:
             json.dump(json_dict, zpspec_file)
 
+        # todo: thread safety !!!! 
+        # with self._package_infos_lock:
         if package_name not in self._package_infos:
             self._package_infos[package_name] = PackageInfo(name=package_name, versions=[], links=None)
 
         self._package_infos[package_name].versions.append(version)
-
 
     async def add_package(self, temp_file_path: str):
         return await IOLoop.current().run_in_executor(None, self.add_package_sync, temp_file_path)
