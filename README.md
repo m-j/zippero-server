@@ -20,7 +20,7 @@ Create configuration file:
 		]
 	},
 	"repository" : {
-		"data_folder" : "test_data_folder"
+		"dataFolder" : "test_data_folder"
 	}
 }
 ```

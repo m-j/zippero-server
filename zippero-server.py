@@ -21,9 +21,14 @@ def create_tornado_app():
         (r'/packages', PackagesHandler, {'package_manager': package_manager})
     ])
 
+async def started_callback(port):
+    print(f'Zippero server started and listening on port {port}')
+
 def start_server():
     app = create_tornado_app()
-    app.listen(port=config['server']['port'])
+    port  = config['server']['port']
+    app.listen(port=port)
+    ioloop.IOLoop.current().add_callback(started_callback, port)
     ioloop.IOLoop.current().start()
 
 def main():
