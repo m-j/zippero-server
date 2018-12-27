@@ -20,3 +20,4 @@ class PackageInfo:
 
     def as_dict(self):
         return asdict(self)
+

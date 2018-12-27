@@ -1,20 +1,19 @@
 import copy
 import json
 import os
-from dataclasses import dataclass, asdict
+import shutil
 from threading import Lock
 from typing import List, Dict, Optional
 from zipfile import ZipFile
 
-from tornado.httputil import HTTPFile
 from tornado.ioloop import IOLoop
 
 from package_management import data_paths
 from package_management.constants import zpspec_filename, package_name_key, version_key
-from package_management.data_paths import get_packages_path
 from package_management.data_scanning import scan_data_directory
 from package_management.errors import PackageAlreadExistsError
 from package_management.model import PackageMetadata, PackageInfo
+from package_management.utils import fullname
 
 
 def packages_metadata_from_versions(name: str, semvers: List[str]):
@@ -32,10 +31,12 @@ def parse_zpfile(temp_file_path: str):
 class PackageManager:
     _data_dir_path: str
     _package_infos: Dict[str, PackageInfo]
+    _packages_in_processing_fullnames: List[str]
     _package_infos_lock: Lock
 
     def __init__(self, data_dir_path: str):
         self._data_dir_path = data_dir_path
+        self._packages_in_processing_fullnames = []
         self._package_infos_lock = Lock()
 
     def scan(self):
@@ -47,7 +48,7 @@ class PackageManager:
         if package_name is not None:
             if package_name in self._package_infos:
                 package_info = self._package_infos[package_name]
-                return copy.deepcopy(package_info)
+                return package_info
             else:
                 return None
         else:
@@ -56,32 +57,49 @@ class PackageManager:
     def add_package_sync(self, temp_file_path: str):
         json_dict = parse_zpfile(temp_file_path)
 
-        package_name = json_dict[package_name_key]
+        name = json_dict[package_name_key]
         version = json_dict[version_key]
 
-        package_version_dir_path = os.path.join(self._data_dir_path, data_paths.packages, package_name, version)
-        package_version_file_path = os.path.join(package_version_dir_path, f'{package_name}.zip')
+        package_version_dir_path = os.path.join(self._data_dir_path, data_paths.packages, name, version)
+        package_version_file_path = os.path.join(package_version_dir_path, f'{name}.zip')
         package_version_zpspec_path = os.path.join(package_version_dir_path, zpspec_filename)
 
-        if package_name in self._package_infos and version in self._package_infos[package_name].versions:
-            raise PackageAlreadExistsError(package_name=package_name, package_version=version)
+        self._add_fullname_to_in_processing_or_raise_exception(name, version)
 
         try:
-            os.makedirs(package_version_dir_path, exist_ok=False)
-        except OSError as err:
-            raise
+            try:
+                os.makedirs(package_version_dir_path, exist_ok=False)
+            except OSError as err:
+                raise PackageAlreadExistsError(package_name=name, package_version=version)
 
-        os.rename(temp_file_path, package_version_file_path)
+            shutil.move(temp_file_path, package_version_file_path)
+            # what if we fail here? it will violate integrity
+            with open(package_version_zpspec_path, mode='wt') as zpspec_file:
+                json.dump(json_dict, zpspec_file)
 
-        with open(package_version_zpspec_path, mode='wt') as zpspec_file:
-            json.dump(json_dict, zpspec_file)
+            with self._package_infos_lock:
+                self._add_version_to_package_info(name, version)
 
-        # todo: thread safety !!!!
-        # with self._package_infos_lock:
-        if package_name not in self._package_infos:
-            self._package_infos[package_name] = PackageInfo(name=package_name, versions=[], links=None)
+        finally:
+            with self._package_infos_lock:
+                self._packages_in_processing_fullnames.remove(fullname(name, version))
 
-        self._package_infos[package_name].versions.append(version)
+    def _add_version_to_package_info(self, name, version):
+        if name not in self._package_infos:
+            package_infos_clone = copy.deepcopy(self._package_infos)
+            package_infos_clone[name] = PackageInfo(name=name, versions=[], links=None)
+            package_infos_clone[name].versions.append(version)
+            self._package_infos = package_infos_clone
+
+    def _add_fullname_to_in_processing_or_raise_exception(self, name, version):
+        with self._package_infos_lock:
+            if name in self._package_infos and version in self._package_infos[name].versions:
+                raise PackageAlreadExistsError(package_name=name, package_version=version)
+
+            if fullname(name, version) in self._packages_in_processing_fullnames:
+                raise PackageAlreadExistsError(package_name=name, package_version=version)
+
+            self._packages_in_processing_fullnames.append(fullname(name, version))
 
     async def add_package(self, temp_file_path: str):
         return await IOLoop.current().run_in_executor(None, self.add_package_sync, temp_file_path)
