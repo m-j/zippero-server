@@ -76,7 +76,7 @@ class PackageManager:
         with open(package_version_zpspec_path, mode='wt') as zpspec_file:
             json.dump(json_dict, zpspec_file)
 
-        # todo: thread safety !!!! 
+        # todo: thread safety !!!!
         # with self._package_infos_lock:
         if package_name not in self._package_infos:
             self._package_infos[package_name] = PackageInfo(name=package_name, versions=[], links=None)
