@@ -2,6 +2,9 @@ from tornado.web import RequestHandler
 
 from package_management.package_manager import PackageManager
 
+async def generator():
+    for i in range(5):
+        yield f'--{i}--'
 
 class GetPackagesHandler(RequestHandler):
     _package_manager: PackageManager
@@ -10,4 +13,7 @@ class GetPackagesHandler(RequestHandler):
         self._package_manager = package_manager
 
     async def get(self, name, version):
-        self.write(f'here it {name}@{version}')
+        async for num in generator():
+            self.write(num)
+
+        self.finish()
