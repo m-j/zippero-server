@@ -1,3 +1,5 @@
+import logging
+
 from jsonschema import validate
 from tornado import ioloop, web, escape
 
@@ -10,6 +12,8 @@ from utils import load_config
 
 config = load_config.load_config()
 
+logging.basicConfig()
+logging.getLogger().setLevel(logging.DEBUG)
 
 def create_tornado_app():
     package_manager = PackageManager(config['repository']['dataFolder'])

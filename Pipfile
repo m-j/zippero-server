@@ -9,6 +9,7 @@ mypy = "*"
 [packages]
 tornado = "*"
 jsonschema = "*"
+aiofiles = "*"
 
 [requires]
 python_version = "3.7"
