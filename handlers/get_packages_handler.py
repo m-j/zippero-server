@@ -10,4 +10,4 @@ class GetPackagesHandler(RequestHandler):
         self._package_manager = package_manager
 
     async def get(self, name, version):
-        self.write('here it goes')
+        self.write(f'here it {name}@{version}')
