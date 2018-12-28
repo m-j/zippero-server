@@ -1,4 +1,5 @@
 import re
+from time import time
 
 import aiofiles
 import tornado
@@ -11,6 +12,9 @@ import tempfile
 from package_management.errors import PackageAlreadExistsError
 from package_management.package_manager import PackageManager
 
+# ----- Benchmark -----
+# Opening file each part: Body processed in 24.232001066207886s
+# Opening onece: Body processed in 2.949439764022827s
 
 def save_file_body_to_temporary_file(b: bytes) -> str:
     # todo check how big files behave. look at streaming
@@ -35,23 +39,33 @@ class PackagesHandler(RequestHandler):
     _file: AiofilesContextManager
     _temp_file_path: str = None
     _boundary: str = None
+    _start_time = None
 
     def initialize(self, package_manager):
         self.package_manager = package_manager
 
-    def prepare(self):
+    async def prepare(self):
         self.request.connection.set_max_body_size(1024**3)
         content_type = self.request.headers.get('Content-Type')
         print(content_type)
+        self._start_time = time()
+        self._temp_file_path = create_new_tempfile()
+        self._file = await aiofiles.open(self._temp_file_path, 'ab')
 
     async def data_received(self, chunk):
-        if not self._temp_file_path:
-            self._temp_file_path = create_new_tempfile()
-
-        async with aiofiles.open(self._temp_file_path, 'ab') as file:
-            await file.write(chunk)
+        try:
+            await self._file.write(chunk)
+        except:
+            await self._file.close()
+            self._file = None
+            raise
 
     async def post(self):
+        if self._file:
+            await self._file.close()
+
+        print(f'Body processed in {(time() - self._start_time)}s')
+
         if not self._temp_file_path:
             self.set_status(400)
             self.write('No file data provided')
