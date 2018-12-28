@@ -1,5 +1,6 @@
 import copy
 import json
+import logging
 import os
 import shutil
 from threading import Lock
@@ -80,6 +81,8 @@ class PackageManager:
             with self._package_infos_lock:
                 self._add_version_to_package_info(name, version)
 
+            logging.info(f'Successfully added new package: {fullname(name, version)}')
+
         finally:
             with self._package_infos_lock:
                 self._packages_in_processing_fullnames.remove(fullname(name, version))
@@ -103,6 +106,3 @@ class PackageManager:
 
     async def add_package(self, temp_file_path: str):
         return await IOLoop.current().run_in_executor(None, self.add_package_sync, temp_file_path)
-
-
-
