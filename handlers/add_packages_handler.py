@@ -22,7 +22,7 @@ def create_new_tempfile() -> str:
         return tmp.name
 
 @tornado.web.stream_request_body
-class PackagesHandler(RequestHandler):
+class AddPackagesHandler(RequestHandler):
     package_manager: PackageManager
     _file: AiofilesContextManager
     _temp_file_path: str = None

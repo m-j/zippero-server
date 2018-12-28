@@ -3,9 +3,10 @@ import logging
 from jsonschema import validate
 from tornado import ioloop, web, escape
 
+from handlers.get_packages_handler import GetPackagesHandler
 from handlers.hello_handler import HelloHandler
 from handlers.package_info_handler import PackageInfoHandler
-from handlers.packages_handler import PackagesHandler
+from handlers.add_packages_handler import AddPackagesHandler
 
 from package_management.package_manager import PackageManager
 from utils import load_config
@@ -22,7 +23,8 @@ def create_tornado_app():
     return web.Application([
         (r'/hello', HelloHandler),
         (r'/package-info/(?P<package_name>[^/]+)', PackageInfoHandler, {'package_manager': package_manager}),
-        (r'/packages', PackagesHandler, {'package_manager': package_manager})
+        (r'/packages', AddPackagesHandler, {'package_manager': package_manager}),
+        (r'/packages/(?P<name>[^/]+)/(?P<version>[^/]+)', GetPackagesHandler, {'package_manager': package_manager})
     ])
 
 async def started_callback(port):
