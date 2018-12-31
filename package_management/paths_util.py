@@ -22,8 +22,8 @@ class PathsUtil:
         return os.path.join(self._data_dir_path, data_paths.packages, name, version)
 
     def path_is_valid(self, path: str):
-        pathlib_path_to_validate = pathlib.Path(path)
-        pathlib_data_dir = pathlib.Path(self._data_dir_path)
+        pathlib_path_to_validate = pathlib.Path(os.path.abspath(path))
+        pathlib_data_dir = pathlib.Path(os.path.abspath(os.path.join(self._data_dir_path, data_paths.packages)))
 
         return pathlib_data_dir in pathlib_path_to_validate.parents
 
