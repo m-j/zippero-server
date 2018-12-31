@@ -7,15 +7,17 @@ from threading import Lock
 from typing import List, Dict, Optional
 from zipfile import ZipFile
 
+import aiofiles
 from tornado.ioloop import IOLoop
 
 from package_management import data_paths
 from package_management.constants import zpspec_filename, package_name_key, version_key
 from package_management.data_scanning import scan_data_directory
-from package_management.errors import PackageAlreadExistsError
+from package_management.errors import PackageAlreadExistsError, PackageDoesntExistError
 from package_management.model import PackageMetadata, PackageInfo
 from package_management.utils import fullname
 
+read_chunk_size = 1024*1024*10
 
 def packages_metadata_from_versions(name: str, semvers: List[str]):
     return [PackageMetadata(name=name, semver=semver) for semver in semvers]
@@ -45,15 +47,15 @@ class PackageManager:
         # todo: validate integirty here in a future
         self._package_infos = package_infos
 
-    def query(self, package_name: str = None, version: str = None) -> Optional[PackageInfo]:
-        if package_name is not None:
-            if package_name in self._package_infos:
-                package_info = self._package_infos[package_name]
-                return package_info
-            else:
-                return None
+    def query(self, name: str = None) -> Optional[PackageInfo]:
+        if name is None:
+            raise ValueError('You have to provide package name')
+
+        if name in self._package_infos:
+            package_info = self._package_infos[name]
+            return package_info
         else:
-            raise ValueError('Wrong parameter')
+            return None
 
     def add_package_sync(self, temp_file_path: str):
         json_dict = parse_zpfile(temp_file_path)
@@ -61,9 +63,9 @@ class PackageManager:
         name = json_dict[package_name_key]
         version = json_dict[version_key]
 
-        package_version_dir_path = os.path.join(self._data_dir_path, data_paths.packages, name, version)
-        package_version_file_path = os.path.join(package_version_dir_path, f'{name}.zip')
-        package_version_zpspec_path = os.path.join(package_version_dir_path, zpspec_filename)
+        package_version_dir_path = self._get_package_version_dir_path(name, version)
+        package_version_file_path = self._get_package_version_file_path(name, version)
+        package_version_zpspec_path = self._get_package_version_zpspec_path(name, version)
 
         self._add_fullname_to_in_processing_or_raise_exception(name, version)
 
@@ -87,6 +89,15 @@ class PackageManager:
             with self._package_infos_lock:
                 self._packages_in_processing_fullnames.remove(fullname(name, version))
 
+    def _get_package_version_zpspec_path(self, name, version):
+        return os.path.join(self._get_package_version_dir_path(name, version), zpspec_filename)
+
+    def _get_package_version_file_path(self, name: str, version: str):
+        return os.path.join(self._get_package_version_dir_path(name, version), f'{name}.zip')
+
+    def _get_package_version_dir_path(self, name, version):
+        return os.path.join(self._data_dir_path, data_paths.packages, name, version)
+
     def _add_version_to_package_info(self, name, version):
         if name not in self._package_infos:
             package_infos_clone = copy.deepcopy(self._package_infos)
@@ -106,3 +117,27 @@ class PackageManager:
 
     async def add_package(self, temp_file_path: str):
         return await IOLoop.current().run_in_executor(None, self.add_package_sync, temp_file_path)
+
+    async def read_package(self, name: str, version: str):
+        if name is None or version is None:
+            raise ValueError('You have to specify both name and version')
+
+        # todo: protect from deleting package when it is being read
+
+        package_info = self.query(name=name)
+
+        if (package_info is None) or (version not in package_info.versions):
+            raise PackageDoesntExistError(name, version)
+
+        package_file_path = self._get_package_version_file_path(name, version)
+
+        # todo: try-catch
+
+        async with aiofiles.open(package_file_path, mode='rb') as file:
+            while True:
+                chunk_bytes = await file.read(read_chunk_size)
+                if len(chunk_bytes) > 0:
+                    yield chunk_bytes
+                else:
+                    return
+

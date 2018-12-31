@@ -1,6 +1,7 @@
 import logging
 import re
 from time import time
+from typing import Optional
 
 import aiofiles
 import tornado
@@ -25,8 +26,7 @@ def create_new_tempfile() -> str:
 class AddPackagesHandler(RequestHandler):
     package_manager: PackageManager
     _file: AiofilesContextManager
-    _temp_file_path: str = None
-    _boundary: str = None
+    _temp_file_path: Optional[str] = None
     _start_time = None
 
     def initialize(self, package_manager):

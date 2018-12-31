@@ -11,7 +11,7 @@ class PackageInfoHandler(RequestHandler):
         self.package_manager = package_manager
 
     async def get(self, package_name):
-        package_info = self.package_manager.query(package_name=package_name)
+        package_info = self.package_manager.query(name=package_name)
 
         if package_info is not None:
             self.finish(wrap_in_envelope(package_info.as_dict()))

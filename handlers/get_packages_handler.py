@@ -13,7 +13,8 @@ class GetPackagesHandler(RequestHandler):
         self._package_manager = package_manager
 
     async def get(self, name, version):
-        async for num in generator():
-            self.write(num)
+        async for chunk_bytes in self._package_manager.read_package(name, version):
+            self.add_header('Content-Type', 'application/zip')
+            self.write(chunk_bytes)
 
         self.finish()
