@@ -10,6 +10,7 @@ mypy = "*"
 tornado = "*"
 jsonschema = "*"
 aiofiles = "*"
+bcrypt = "*"
 
 [requires]
 python_version = "3.7"

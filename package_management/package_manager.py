@@ -21,6 +21,7 @@ from package_management.utils import fullname
 
 read_chunk_size = 1024*1024*10
 
+
 def packages_metadata_from_versions(name: str, semvers: List[str]):
     return [PackageMetadata(name=name, semver=semver) for semver in semvers]
 

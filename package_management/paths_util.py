@@ -31,5 +31,5 @@ class PathsUtil:
         for path in paths:
             if not self.path_is_valid(path):
                 return False
-
         return True
+
