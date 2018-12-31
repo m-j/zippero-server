@@ -8,13 +8,15 @@ from typing import List, Dict, Optional
 from zipfile import ZipFile
 
 import aiofiles
+import pathlib
 from tornado.ioloop import IOLoop
 
 from package_management import data_paths
 from package_management.constants import zpspec_filename, package_name_key, version_key
 from package_management.data_scanning import scan_data_directory
-from package_management.errors import PackageAlreadExistsError, PackageDoesntExistError
+from package_management.errors import PackageAlreadExistsError, PackageDoesntExistError, MaliciousDataError
 from package_management.model import PackageMetadata, PackageInfo
+from package_management.paths_util import PathsUtil
 from package_management.utils import fullname
 
 read_chunk_size = 1024*1024*10
@@ -32,12 +34,14 @@ def parse_zpfile(temp_file_path: str):
 
 
 class PackageManager:
+    _paths_util: PathsUtil
     _data_dir_path: str
     _package_infos: Dict[str, PackageInfo]
     _packages_in_processing_fullnames: List[str]
     _package_infos_lock: Lock
 
-    def __init__(self, data_dir_path: str):
+    def __init__(self, data_dir_path: str, paths_util: PathsUtil):
+        self._paths_util = paths_util
         self._data_dir_path = data_dir_path
         self._packages_in_processing_fullnames = []
         self._package_infos_lock = Lock()
@@ -63,9 +67,13 @@ class PackageManager:
         name = json_dict[package_name_key]
         version = json_dict[version_key]
 
-        package_version_dir_path = self._get_package_version_dir_path(name, version)
-        package_version_file_path = self._get_package_version_file_path(name, version)
-        package_version_zpspec_path = self._get_package_version_zpspec_path(name, version)
+        package_version_dir_path = self._paths_util.get_package_version_dir_path(name, version)
+        package_version_file_path = self._paths_util.get_package_version_file_path(name, version)
+        package_version_zpspec_path = self._paths_util.get_package_version_zpspec_path(name, version)
+
+        if not self._paths_util.paths_are_valid([package_version_dir_path, package_version_file_path, package_version_zpspec_path]):
+            logging.error(f'Tried to create package in folder {package_version_dir_path} which is outside data directory')
+            raise MaliciousDataError()
 
         self._add_fullname_to_in_processing_or_raise_exception(name, version)
 
@@ -88,15 +96,6 @@ class PackageManager:
         finally:
             with self._package_infos_lock:
                 self._packages_in_processing_fullnames.remove(fullname(name, version))
-
-    def _get_package_version_zpspec_path(self, name, version):
-        return os.path.join(self._get_package_version_dir_path(name, version), zpspec_filename)
-
-    def _get_package_version_file_path(self, name: str, version: str):
-        return os.path.join(self._get_package_version_dir_path(name, version), f'{name}.zip')
-
-    def _get_package_version_dir_path(self, name, version):
-        return os.path.join(self._data_dir_path, data_paths.packages, name, version)
 
     def _add_version_to_package_info(self, name, version):
         if name not in self._package_infos:
@@ -129,15 +128,22 @@ class PackageManager:
         if (package_info is None) or (version not in package_info.versions):
             raise PackageDoesntExistError(name, version)
 
-        package_file_path = self._get_package_version_file_path(name, version)
+        package_file_path = self._paths_util.get_package_version_file_path(name, version)
 
-        # todo: try-catch
+        if not self._paths_util.path_is_valid(package_file_path):
+            logging.error(f'Tried to read data from file {package_file_path} which is outside data directory')
+            raise MaliciousDataError()
 
-        async with aiofiles.open(package_file_path, mode='rb') as file:
-            while True:
-                chunk_bytes = await file.read(read_chunk_size)
-                if len(chunk_bytes) > 0:
-                    yield chunk_bytes
-                else:
-                    return
+        try:
+            async with aiofiles.open(package_file_path, mode='rb') as file:
+                while True:
+                    chunk_bytes = await file.read(read_chunk_size)
+                    if len(chunk_bytes) > 0:
+                        yield chunk_bytes
+                    else:
+                        return
+        except OSError as oserr:
+            logging.exception(f'Failed to open file {package_file_path} for reading')
+            raise PackageDoesntExistError(name, version)
+
 

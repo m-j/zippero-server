@@ -9,6 +9,7 @@ from handlers.package_info_handler import PackageInfoHandler
 from handlers.add_packages_handler import AddPackagesHandler
 
 from package_management.package_manager import PackageManager
+from package_management.paths_util import PathsUtil
 from utils import load_config
 
 config = load_config.load_config()
@@ -17,7 +18,9 @@ logging.basicConfig()
 logging.getLogger().setLevel(logging.DEBUG)
 
 def create_tornado_app():
-    package_manager = PackageManager(config['repository']['dataFolder'])
+    data_folder = config['repository']['dataFolder']
+    paths_util = PathsUtil(data_folder)
+    package_manager = PackageManager(data_folder, paths_util)
     package_manager.scan()
 
     return web.Application([

@@ -18,3 +18,7 @@ class PackageDoesntExistError(ZipperoError):
     def __init__(self, package_name: str, package_version: str):
         self.package_name = package_name
         self.package_version = package_version
+
+
+class MaliciousDataError(ZipperoError):
+    pass
