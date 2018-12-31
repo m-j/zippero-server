@@ -51,7 +51,7 @@ class PackageManager:
         # todo: validate integirty here in a future
         self._package_infos = package_infos
 
-    def query(self, name: str = None) -> Optional[PackageInfo]:
+    def query(self, name: str) -> Optional[PackageInfo]:
         if name is None:
             raise ValueError('You have to provide package name')
 
@@ -100,7 +100,7 @@ class PackageManager:
     def _add_version_to_package_info(self, name, version):
         if name not in self._package_infos:
             package_infos_clone = copy.deepcopy(self._package_infos)
-            package_infos_clone[name] = PackageInfo(name=name, versions=[], links=None)
+            package_infos_clone[name] = PackageInfo(name=name, versions=[])
             package_infos_clone[name].versions.append(version)
             self._package_infos = package_infos_clone
 

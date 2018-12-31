@@ -32,7 +32,7 @@ def create_tornado_app():
 
 
 async def started_callback(port):
-    print(f'Zippero server started and listening on port {port}')
+    logging.info(f'Zippero server started and listening on port {port}')
 
 
 def start_server():
@@ -44,7 +44,6 @@ def start_server():
 
 
 def main():
-    # scan_data_directory(config['repository']['dataFolder'])
     start_server()
 
 if __name__ == '__main__':

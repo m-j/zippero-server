@@ -16,7 +16,6 @@ class PackageMetadata:
 class PackageInfo:
     name: str
     versions: List[str]
-    links: Optional[Dict[str, str]]
 
     def as_dict(self):
         return asdict(self)

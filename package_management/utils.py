@@ -8,3 +8,7 @@ def parse_fullname(fullname: str):
 
     [name, version] = fullname.split('@')
     return (name, version)
+
+
+def package_link(protocol: str, host: str, name: str, version: str):
+    return f'{protocol}://{host}/packages/{name}/{version}'

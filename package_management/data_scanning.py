@@ -11,7 +11,7 @@ def list_versions_in_package_folder(package_folder: str):
 
 
 def build_package_info(name: str, versions: List[str]):
-    return PackageInfo(name, versions, links=None)
+    return PackageInfo(name, versions)
 
 
 def scan_data_directory(data_dir_path: str) -> Dict[str, PackageInfo]:

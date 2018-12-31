@@ -18,7 +18,8 @@ schema = {
 
 class HelloHandler(RequestHandler):
     async def get(self):
-         self.finish({'entries': global_repo})
+        host = self.request.headers.get('Host')
+        self.write(host)
 
     async def post(self):
         body = self.request.body
