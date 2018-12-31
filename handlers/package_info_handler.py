@@ -3,16 +3,19 @@ from tornado.web import RequestHandler
 from handlers.handler_utils import wrap_in_envelope
 from package_management.package_manager import PackageManager
 from package_management.utils import package_link
+from security.privilege_validator import PrivilegeValidator
 
 
 class PackageInfoHandler(RequestHandler):
-    package_manager: PackageManager
+    _privilege_validator: PrivilegeValidator
+    _package_manager: PackageManager
 
-    def initialize(self, package_manager):
-        self.package_manager = package_manager
+    def initialize(self, package_manager, privilege_validator: PrivilegeValidator):
+        self._package_manager = package_manager
+        self._privilege_validator = privilege_validator
 
     async def get(self, package_name):
-        package_info = self.package_manager.query(name=package_name)
+        package_info = self._package_manager.query(name=package_name)
 
         if package_info is not None:
             package_info_dict = self.make_package_info_dict(package_info)

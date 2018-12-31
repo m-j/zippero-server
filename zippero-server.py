@@ -10,6 +10,7 @@ from handlers.add_packages_handler import AddPackagesHandler
 
 from package_management.package_manager import PackageManager
 from package_management.paths_util import PathsUtil
+from security.privilege_validator import PrivilegeValidator
 from utils import load_config
 
 config = load_config.load_config()
@@ -19,15 +20,22 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 def create_tornado_app():
     data_folder = config['repository']['dataFolder']
+    privilege_validator = PrivilegeValidator(config['keys'])
     paths_util = PathsUtil(data_folder)
     package_manager = PackageManager(data_folder, paths_util)
     package_manager.scan()
 
     return web.Application([
         (r'/hello', HelloHandler),
-        (r'/package-info/(?P<package_name>[^/]+)', PackageInfoHandler, {'package_manager': package_manager}),
-        (r'/packages', AddPackagesHandler, {'package_manager': package_manager}),
-        (r'/packages/(?P<name>[^/]+)/(?P<version>[^/]+)', GetPackagesHandler, {'package_manager': package_manager})
+        (r'/package-info/(?P<package_name>[^/]+)', PackageInfoHandler, {
+            'package_manager': package_manager, 'privilege_validator': privilege_validator
+        }),
+        (r'/packages', AddPackagesHandler, {
+            'package_manager': package_manager, 'privilege_validator': privilege_validator
+        }),
+        (r'/packages/(?P<name>[^/]+)/(?P<version>[^/]+)', GetPackagesHandler, {
+            'package_manager': package_manager, 'privilege_validator': privilege_validator
+        })
     ])
 
 

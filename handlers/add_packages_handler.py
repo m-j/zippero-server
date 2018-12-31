@@ -17,6 +17,8 @@ from package_management.package_manager import PackageManager
 # ----- Benchmark -----
 # Opening file each part: Body processed in 24.232001066207886s
 # Opening onece: Body processed in 2.949439764022827s
+from security.privilege_validator import PrivilegeValidator
+
 
 def create_new_tempfile() -> str:
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
@@ -24,13 +26,15 @@ def create_new_tempfile() -> str:
 
 @tornado.web.stream_request_body
 class AddPackagesHandler(RequestHandler):
-    package_manager: PackageManager
+    _privilege_validator: PrivilegeValidator
+    _package_manager: PackageManager
     _file: AiofilesContextManager
     _temp_file_path: Optional[str] = None
     _start_time = None
 
-    def initialize(self, package_manager):
-        self.package_manager = package_manager
+    def initialize(self, package_manager, privilege_validator: PrivilegeValidator):
+        self._package_manager = package_manager
+        self._privilege_validator = privilege_validator
 
     async def prepare(self):
         self.request.connection.set_max_body_size(1024**3)
@@ -61,7 +65,7 @@ class AddPackagesHandler(RequestHandler):
         try:
             self.clear()
             temp_file_path = self._temp_file_path
-            await self.package_manager.add_package(temp_file_path)
+            await self._package_manager.add_package(temp_file_path)
             self.set_status(201)
         except PackageAlreadExistsError as ex:
             self.set_status(400)
