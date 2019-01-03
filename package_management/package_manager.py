@@ -8,13 +8,11 @@ from typing import List, Dict, Optional
 from zipfile import ZipFile
 
 import aiofiles
-import pathlib
 from tornado.ioloop import IOLoop
 
-from package_management import data_paths
 from package_management.constants import zpspec_filename, package_name_key, version_key
 from package_management.data_scanning import scan_data_directory
-from package_management.errors import PackageAlreadExistsError, PackageDoesntExistError, MaliciousDataError
+from errors.errors import PackageAlreadExistsError, PackageDoesntExistError, MaliciousDataError
 from package_management.model import PackageMetadata, PackageInfo
 from package_management.paths_util import PathsUtil
 from package_management.utils import fullname

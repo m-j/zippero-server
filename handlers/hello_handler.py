@@ -1,7 +1,9 @@
 from jsonschema import validate
 from tornado import escape
-from tornado.web import RequestHandler, HTTPError
+from tornado.web import HTTPError
 
+from handlers.zippero_base_handler import ZipperoBaseHandler
+from errors.errors import TestError, UnauthorizedError
 from security.privilege_validator import PrivilegeValidator
 
 global_repo = [
@@ -18,7 +20,7 @@ schema = {
     }
 }
 
-class HelloHandler(RequestHandler):
+class HelloHandler(ZipperoBaseHandler):
     _privilege_validator: PrivilegeValidator
 
     def initialize(self, privilege_validator: PrivilegeValidator):
@@ -26,7 +28,9 @@ class HelloHandler(RequestHandler):
 
     async def get(self):
         if not self._privilege_validator.validate_request_readonly(self.request):
-            raise HTTPError(status_code=401, log_message='This endpoint requires readonly or readwrite key')
+            raise UnauthorizedError()
+
+        raise TestError()
 
         host = self.request.headers.get('Host')
         self.write(host)

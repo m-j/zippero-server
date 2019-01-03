@@ -3,7 +3,6 @@ def wrap_in_envelope(response_dict):
         'data' : response_dict
     }
 
-
 def test() -> str:
     return 'str'
 

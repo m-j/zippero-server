@@ -1,5 +1,18 @@
+from typing import Optional
+
+from errors.error_codes import ErrorCodes
+
+
 class ZipperoError(Exception):
-    pass
+    error_code: ErrorCodes = ErrorCodes.GENERAL
+    message: str = 'General exception'
+    status_code: int = 500
+
+    def to_json(self):
+        return {
+            'error_code': self.error_code.value,
+            'message': self.message
+        }
 
 
 class PackageAlreadExistsError(ZipperoError):
@@ -18,6 +31,15 @@ class PackageDoesntExistError(ZipperoError):
     def __init__(self, package_name: str, package_version: str):
         self.package_name = package_name
         self.package_version = package_version
+
+
+class UnauthorizedError(ZipperoError):
+    error_code = ErrorCodes.UNAUTHORIZED
+    message = 'Unauthorized'
+    status_code = 401
+
+class TestError(ZipperoError):
+    test_message: str
 
 
 class MaliciousDataError(ZipperoError):
