@@ -20,13 +20,15 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 def create_tornado_app():
     data_folder = config['repository']['dataFolder']
-    privilege_validator = PrivilegeValidator(config['keys'])
+    privilege_validator = PrivilegeValidator()
+    privilege_validator.load_keys(config['keys'])
+
     paths_util = PathsUtil(data_folder)
     package_manager = PackageManager(data_folder, paths_util)
     package_manager.scan()
 
     return web.Application([
-        (r'/hello', HelloHandler),
+        (r'/hello', HelloHandler, {'privilege_validator': privilege_validator}),
         (r'/package-info/(?P<package_name>[^/]+)', PackageInfoHandler, {
             'package_manager': package_manager, 'privilege_validator': privilege_validator
         }),
