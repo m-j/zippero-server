@@ -5,6 +5,8 @@ from tornado.httputil import HTTPServerRequest
 import bcrypt
 import base64
 
+from errors.errors import UnauthorizedError
+
 api_key_header = 'Zippero-Api-Key'
 
 
@@ -41,6 +43,14 @@ class PrivilegeValidator:
 
     def validate_request_readwrite(self, request: HTTPServerRequest):
         return self._validate_request(request, self._readwrite_entries)
+
+    def assure_readonly_access(self, request: HTTPServerRequest):
+        if not self.validate_request_readonly(request):
+            raise UnauthorizedError(message='Minimum readonly access is needed to access this method')
+
+    def assure_readwrite_access(self, request: HTTPServerRequest):
+        if not self.validate_request_readwrite(request):
+            raise UnauthorizedError(message='Readwrite access is needed to access this method')
 
     def _validate_request(self, request, entries: List[KeyEntry]):
         if not self.is_security_enabled():

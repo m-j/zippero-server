@@ -1,12 +1,13 @@
 from tornado.web import RequestHandler
 
 from handlers.handler_utils import wrap_in_envelope
+from handlers.zippero_base_handler import ZipperoBaseHandler
 from package_management.package_manager import PackageManager
 from package_management.utils import package_link
 from security.privilege_validator import PrivilegeValidator
 
 
-class PackageInfoHandler(RequestHandler):
+class PackageInfoHandler(ZipperoBaseHandler):
     _privilege_validator: PrivilegeValidator
     _package_manager: PackageManager
 
@@ -15,6 +16,8 @@ class PackageInfoHandler(RequestHandler):
         self._privilege_validator = privilege_validator
 
     async def get(self, package_name):
+        self._privilege_validator.assure_readonly_access(self.request)
+
         package_info = self._package_manager.query(name=package_name)
 
         if package_info is not None:

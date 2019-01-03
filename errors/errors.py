@@ -34,9 +34,13 @@ class PackageDoesntExistError(ZipperoError):
 
 
 class UnauthorizedError(ZipperoError):
+    def __init__(self, message='Unauthorized'):
+        self.message = message
+
     error_code = ErrorCodes.UNAUTHORIZED
     message = 'Unauthorized'
     status_code = 401
+
 
 class TestError(ZipperoError):
     test_message: str

@@ -9,6 +9,7 @@ from tornado.web import RequestHandler
 import tempfile
 
 from errors.errors import PackageAlreadExistsError
+from handlers.zippero_base_handler import ZipperoBaseHandler
 from package_management.package_manager import PackageManager
 
 # ----- Benchmark -----
@@ -22,7 +23,7 @@ def create_new_tempfile() -> str:
         return tmp.name
 
 @tornado.web.stream_request_body
-class AddPackagesHandler(RequestHandler):
+class AddPackagesHandler(ZipperoBaseHandler):
     _privilege_validator: PrivilegeValidator
     _package_manager: PackageManager
     _file: AiofilesContextManager
@@ -34,6 +35,8 @@ class AddPackagesHandler(RequestHandler):
         self._privilege_validator = privilege_validator
 
     async def prepare(self):
+        self._privilege_validator.assure_readwrite_access(self.request)
+
         self.request.connection.set_max_body_size(1024**3)
         content_type = self.request.headers.get('Content-Type')
         print(content_type)

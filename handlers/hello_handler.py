@@ -27,10 +27,7 @@ class HelloHandler(ZipperoBaseHandler):
         self._privilege_validator = privilege_validator
 
     async def get(self):
-        if not self._privilege_validator.validate_request_readonly(self.request):
-            raise UnauthorizedError()
-
-        raise TestError()
+        self._privilege_validator.assure_readwrite_access(self.request)
 
         host = self.request.headers.get('Host')
         self.write(host)
