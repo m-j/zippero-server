@@ -67,9 +67,5 @@ class AddPackagesHandler(ZipperoBaseHandler):
             temp_file_path = self._temp_file_path
             await self._package_manager.add_package(temp_file_path)
             self.set_status(201)
-        except PackageAlreadExistsError as ex:
-            self.set_status(400)
-            self.write(f'Package {ex.package_name} in version {ex.package_version} already exists')
-            self.info(f'Package {ex.package_name} in version {ex.package_version} already exists')
         finally:
             self.finish()

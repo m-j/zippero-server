@@ -18,6 +18,7 @@ class ZipperoError(Exception):
 class PackageAlreadExistsError(ZipperoError):
     package_name: str
     package_version: str
+    status_code: int = 400
 
     def __init__(self, package_name: str, package_version: str):
         self.package_version = package_version
@@ -27,6 +28,7 @@ class PackageAlreadExistsError(ZipperoError):
 class PackageDoesntExistError(ZipperoError):
     package_name: str
     package_version: str
+    status_code: int = 404
 
     def __init__(self, package_name: str, package_version: str):
         self.package_name = package_name
