@@ -13,7 +13,7 @@ from tornado.ioloop import IOLoop
 
 from package_management.constants import zpspec_filename, package_name_key, version_key
 from package_management.data_scanning import scan_data_directory
-from errors.errors import PackageAlreadExistsError, PackageDoesntExistError, MaliciousDataError
+from errors.errors import PackageAlreadyExistsError, PackageDoesntExistError, MaliciousDataError
 from package_management.model import PackageMetadata, PackageInfo
 from package_management.paths_util import PathsUtil
 from package_management.utils import fullname
@@ -81,7 +81,7 @@ class PackageManager:
             try:
                 os.makedirs(package_version_dir_path, exist_ok=False)
             except OSError as err:
-                raise PackageAlreadExistsError(package_name=name, package_version=version)
+                raise PackageAlreadyExistsError(package_name=name, package_version=version)
 
             shutil.move(temp_file_path, package_version_file_path)
             # what if we fail here? it will violate integrity
@@ -108,10 +108,10 @@ class PackageManager:
     def _add_fullname_to_in_processing_or_raise_exception(self, name, version):
         with self._package_infos_lock:
             if name in self._package_infos and version in self._package_infos[name].versions:
-                raise PackageAlreadExistsError(package_name=name, package_version=version)
+                raise PackageAlreadyExistsError(package_name=name, package_version=version)
 
             if fullname(name, version) in self._packages_in_processing_fullnames:
-                raise PackageAlreadExistsError(package_name=name, package_version=version)
+                raise PackageAlreadyExistsError(package_name=name, package_version=version)
 
             self._packages_in_processing_fullnames.append(fullname(name, version))
 

@@ -2,6 +2,7 @@ from jsonschema import validate
 from tornado import escape
 from tornado.web import HTTPError
 
+from errors import errors
 from handlers.zippero_base_handler import ZipperoBaseHandler
 from errors.errors import TestError, UnauthorizedError
 from security.privilege_validator import PrivilegeValidator
@@ -28,6 +29,8 @@ class HelloHandler(ZipperoBaseHandler):
 
     async def get(self):
         self._privilege_validator.assure_readwrite_access(self.request)
+
+        raise errors.PackageAlreadyExistsError('aaa', '1.0.0')
 
         host = self.request.headers.get('Host')
         self.write(host)

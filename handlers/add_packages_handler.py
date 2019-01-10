@@ -8,7 +8,7 @@ from aiofiles.base import AiofilesContextManager
 from tornado.web import RequestHandler
 import tempfile
 
-from errors.errors import PackageAlreadExistsError
+from errors.errors import PackageAlreadyExistsError, ZipperoError
 from handlers.zippero_base_handler import ZipperoBaseHandler
 from package_management.package_manager import PackageManager
 
@@ -21,6 +21,7 @@ from security.privilege_validator import PrivilegeValidator
 def create_new_tempfile() -> str:
     with tempfile.NamedTemporaryFile(delete=False) as tmp:
         return tmp.name
+
 
 @tornado.web.stream_request_body
 class AddPackagesHandler(ZipperoBaseHandler):
@@ -67,5 +68,7 @@ class AddPackagesHandler(ZipperoBaseHandler):
             temp_file_path = self._temp_file_path
             await self._package_manager.add_package(temp_file_path)
             self.set_status(201)
+        except Exception as ex:
+            ZipperoBaseHandler.write_error_response(self, type(ex), ex)
         finally:
             self.finish()
