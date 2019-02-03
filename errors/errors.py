@@ -57,3 +57,20 @@ class MaliciousDataError(ZipperoError):
     error_code = ErrorCodes.MALICIOUS_DATA
     status_code = 400
     message = 'Malicious data attempt detected'
+
+
+class InvalidNameError(ZipperoError):
+    def __init__(self, name):
+        self.message = f'"{name}" contains characters that are invalid for name'
+
+    error_code = ErrorCodes.INVALID_NAME
+    status_code = 400
+
+
+class InvalidVersionError(ZipperoError):
+    def __init__(self, version):
+        self.message = f'"{version}" contains characters that are invalid for version'
+
+    error_code = ErrorCodes.INVALID_VERSION
+    status_code = 400
+

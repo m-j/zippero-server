@@ -10,7 +10,7 @@ from errors.errors import ZipperoError
 class ZipperoBaseHandler(RequestHandler):
     def write_generic_error(self):
         self.set_status(500)
-        self.finish({
+        self.write({
             'error_code': ErrorCodes.GENERAL.value,
             'message': 'General error'
         })
@@ -22,7 +22,7 @@ class ZipperoBaseHandler(RequestHandler):
             logging.error(f'Caught error {err.error_code.value} ({err.error_code.name})')
 
             self.set_status(status_code=err.status_code)
-            self.finish(err.to_json())
+            self.write(err.to_json())
         else:
             self.write_generic_error()
 

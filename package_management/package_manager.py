@@ -15,6 +15,7 @@ from package_management.constants import zpspec_filename, package_name_key, vers
 from package_management.data_scanning import scan_data_directory
 from errors.errors import PackageAlreadyExistsError, PackageDoesntExistError, MaliciousDataError
 from package_management.model import PackageMetadata, PackageInfo
+from package_management.package_validation import validate_package_name, validate_package_version
 from package_management.paths_util import PathsUtil
 from package_management.utils import fullname
 
@@ -66,6 +67,9 @@ class PackageManager:
 
         name = json_dict[package_name_key]
         version = json_dict[version_key]
+
+        validate_package_name(name)
+        validate_package_version(version)
 
         package_version_dir_path = self._paths_util.get_package_version_dir_path(name, version)
         package_version_file_path = self._paths_util.get_package_version_file_path(name, version)
