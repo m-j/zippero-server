@@ -27,7 +27,8 @@ Create configuration file:
 	},
 	"repository" : {
 		"dataFolder" : "test_data_folder"
-	}
+	},
+    "logsFolder" : "/var/log/opt/zippero-server"
 }
 ```
 

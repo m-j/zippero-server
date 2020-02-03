@@ -1,22 +1,44 @@
 import logging
+from logging.handlers import RotatingFileHandler
 
-from jsonschema import validate
-from tornado import ioloop, web, escape
+from tornado import ioloop, web
 
+from handlers.add_packages_handler import AddPackagesHandler
 from handlers.get_packages_handler import GetPackagesHandler
 from handlers.hello_handler import HelloHandler
 from handlers.package_info_handler import PackageInfoHandler
-from handlers.add_packages_handler import AddPackagesHandler
-
 from package_management.package_manager import PackageManager
 from package_management.paths_util import PathsUtil
 from security.privilege_validator import PrivilegeValidator
 from utils import load_config
+import os
 
 config = load_config.load_config()
 
-logging.basicConfig()
-logging.getLogger().setLevel(logging.DEBUG)
+
+def setup_logging():
+    logger = logging.getLogger()
+    formatter = logging.Formatter("%(asctime)s [%(levelname)s] - %(message)s")
+
+    logger.setLevel(logging.DEBUG)
+
+    logs_folder = config['logsFolder']
+    os.makedirs(logs_folder, exist_ok=True)
+
+    file_handler = RotatingFileHandler(
+        os.path.join(logs_folder, 'zippero-server.log'),
+        maxBytes=1024*1024*10,
+        backupCount=3)
+
+    file_handler.formatter = formatter
+
+    logger.addHandler(file_handler)
+
+    stream_handler = logging.StreamHandler()
+    stream_handler.formatter = formatter
+
+    logger.addHandler(stream_handler)
+
 
 def create_tornado_app():
     data_folder = config['repository']['dataFolder']
@@ -54,6 +76,7 @@ def start_server():
 
 
 def main():
+    setup_logging()
     start_server()
 
 if __name__ == '__main__':
