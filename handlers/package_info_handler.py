@@ -1,5 +1,6 @@
 from tornado.web import RequestHandler
 
+from errors.errors import PackageDoesntExistError
 from handlers.handler_utils import wrap_in_envelope
 from handlers.zippero_base_handler import ZipperoBaseHandler
 from package_management.package_manager import PackageManager
@@ -24,7 +25,7 @@ class PackageInfoHandler(ZipperoBaseHandler):
             package_info_dict = self.make_package_info_dict(package_info)
             self.finish(wrap_in_envelope(package_info_dict))
         else:
-            self.send_error(404)
+            raise PackageDoesntExistError(package_name, 'any')
 
     def make_package_info_dict(self, package_info):
         package_info_dict = package_info.as_dict()

@@ -27,6 +27,7 @@ def create_key_entry(dict_entry: Dict[str, str]):
 
     return KeyEntry(base_64_hashed, name)
 
+
 class PrivilegeValidator:
     _readonly_entries: List[KeyEntry]
     _readwrite_entries: List[KeyEntry]

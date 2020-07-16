@@ -102,12 +102,14 @@ class PackageManager:
                 self._packages_in_processing_fullnames.remove(fullname(name, version))
 
     def _add_version_to_package_info(self, name, version):
+        package_infos_clone = copy.deepcopy(self._package_infos)
+
         if name not in self._package_infos:
-            package_infos_clone = copy.deepcopy(self._package_infos)
             package_infos_clone[name] = PackageInfo(name=name, versions=[])
-            package_infos_clone[name].versions.append(version)
-            package_infos_clone[name].versions.sort(key=StrictVersion)
-            self._package_infos = package_infos_clone
+
+        package_infos_clone[name].versions.append(version)
+        package_infos_clone[name].versions.sort(key=StrictVersion)
+        self._package_infos = package_infos_clone
 
     def _add_fullname_to_in_processing_or_raise_exception(self, name, version):
         with self._package_infos_lock:
