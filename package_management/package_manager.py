@@ -52,6 +52,9 @@ class PackageManager:
         # todo: validate integirty here in a future
         self._package_infos = package_infos
 
+    def query_all(self) -> Dict[str, PackageInfo]:
+        return self._package_infos
+
     def query(self, name: str) -> Optional[PackageInfo]:
         if name is None:
             raise ValueError('You have to provide package name')
@@ -61,6 +64,19 @@ class PackageManager:
             return package_info
         else:
             return None
+
+    def remove_package_sync(self, package_name: str, package_version: str):
+        validate_package_name(package_name)
+        validate_package_version(package_version)
+
+        package_version_dir_path = self._paths_util.get_package_version_dir_path(package_name, package_version)
+        try:
+            print('Removing package ' + package_name + ' in version ' + package_version);
+            shutil.rmtree(package_version_dir_path)
+            with self._package_infos_lock:
+                self._remove_version_to_package_info(package_name, package_version)
+        except OSError as err:
+            logging.info(f'Successfully removed package: {fullname(package_name, package_version)}')
 
     def add_package_sync(self, temp_file_path: str):
         json_dict = parse_zpfile(temp_file_path)
@@ -111,6 +127,20 @@ class PackageManager:
         package_infos_clone[name].versions.sort(key=StrictVersion)
         self._package_infos = package_infos_clone
 
+    def _remove_version_to_package_info(self, name, version):
+        package_infos_clone = copy.deepcopy(self._package_infos)
+
+        if name not in self._package_infos:
+            package_infos_clone[name] = PackageInfo(name=name, versions=[])
+
+        package_infos_clone[name].versions.remove(version)
+        package_infos_clone[name].versions.sort(key=StrictVersion)
+
+        if len(package_infos_clone[name].versions) == 0:
+            del package_infos_clone[name]
+
+        self._package_infos = package_infos_clone
+
     def _add_fullname_to_in_processing_or_raise_exception(self, name, version):
         with self._package_infos_lock:
             if name in self._package_infos and version in self._package_infos[name].versions:
@@ -123,6 +153,9 @@ class PackageManager:
 
     async def add_package(self, temp_file_path: str):
         return await IOLoop.current().run_in_executor(None, self.add_package_sync, temp_file_path)
+
+    async def remove_package(self, package_name: str, package_version: str):
+        return await IOLoop.current().run_in_executor(None, self.remove_package_sync, package_name, package_version)
 
     async def read_package(self, name: str, version: str):
         if name is None or version is None:

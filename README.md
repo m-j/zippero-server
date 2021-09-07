@@ -28,6 +28,10 @@ Create configuration file:
 	"repository" : {
 		"dataFolder" : "test_data_folder"
 	},
+    "retention": {
+		"maxVersionsStoredPerPackage": "3",
+		"packagesCleanIntervalHours": "24"
+	},
     "logsFolder" : "/var/log/opt/zippero-server"
 }
 ```
@@ -49,3 +53,7 @@ pipenv run python hash-password.py some_password
 If no keys specified then security is turned off and anyone can access api.
 
 **repository** - repository data configuration 
+
+**retention** - packages retention policies
+  - `maxVersionsStoredPerPackage` - sets how many last packages needs to be stored. Oldest packages will be removed till limit
+  - `packagesCleanIntervalHours` - sets interval time in hours between cleanups of server
