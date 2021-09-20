@@ -71,12 +71,16 @@ class PackageManager:
 
         package_version_dir_path = self._paths_util.get_package_version_dir_path(package_name, package_version)
         try:
-            print('Removing package ' + package_name + ' in version ' + package_version);
-            shutil.rmtree(package_version_dir_path)
+            dir_exists = os.path.isdir(package_version_dir_path)
+            if dir_exists:
+                print('Removing package ' + package_name + ' in version ' + package_version);
+                shutil.rmtree(package_version_dir_path)
             with self._package_infos_lock:
                 self._remove_version_to_package_info(package_name, package_version)
-        except OSError as err:
+
             logging.info(f'Successfully removed package: {fullname(package_name, package_version)}')
+        except OSError as err:
+            logging.error(f'Error occurred while removing package: {fullname(package_name, package_version)}!')
 
     def add_package_sync(self, temp_file_path: str):
         json_dict = parse_zpfile(temp_file_path)
