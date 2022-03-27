@@ -3,7 +3,7 @@ import json
 import logging
 import os
 import shutil
-from distutils.version import StrictVersion
+from distutils.version import LooseVersion
 from threading import Lock
 from typing import List, Dict, Optional
 from zipfile import ZipFile
@@ -128,7 +128,7 @@ class PackageManager:
             package_infos_clone[name] = PackageInfo(name=name, versions=[])
 
         package_infos_clone[name].versions.append(version)
-        package_infos_clone[name].versions.sort(key=StrictVersion)
+        package_infos_clone[name].versions.sort(key=LooseVersion)
         self._package_infos = package_infos_clone
 
     def _remove_version_to_package_info(self, name, version):
@@ -138,7 +138,7 @@ class PackageManager:
             package_infos_clone[name] = PackageInfo(name=name, versions=[])
 
         package_infos_clone[name].versions.remove(version)
-        package_infos_clone[name].versions.sort(key=StrictVersion)
+        package_infos_clone[name].versions.sort(key=LooseVersion)
 
         if len(package_infos_clone[name].versions) == 0:
             del package_infos_clone[name]
