@@ -2,7 +2,9 @@ import re
 
 from errors.errors import InvalidNameError, InvalidVersionError
 
-version_regex = r'^[\.\d]+$'
+# Semantic versioning: https://semver.org/
+# https://regex101.com/r/Ly7O1x/3/
+version_regex = r'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$'
 name_regex = r'^[\w\.\-]+$'
 
 
