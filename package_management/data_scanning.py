@@ -1,5 +1,5 @@
 import os
-from distutils.version import StrictVersion
+from distutils.version import LooseVersion
 from typing import List, Dict
 
 import package_management.data_paths as data_paths
@@ -27,6 +27,6 @@ def scan_data_directory(data_dir_path: str) -> Dict[str, PackageInfo]:
                           packages_dict.items()}
 
     for k, info in package_info_dicts.items():
-        info.versions.sort(key=StrictVersion)
+        info.versions.sort(key=LooseVersion)
 
     return package_info_dicts
