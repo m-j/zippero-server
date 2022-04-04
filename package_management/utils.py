@@ -12,3 +12,10 @@ def parse_fullname(fullname: str):
 
 def package_link(protocol: str, host: str, name: str, version: str):
     return f'{protocol}://{host}/packages/{name}/{version}'
+
+
+def coalesce(*arg):
+    for el in arg:
+        if el is not None:
+            return el
+    return None

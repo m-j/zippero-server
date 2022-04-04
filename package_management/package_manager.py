@@ -30,7 +30,7 @@ def parse_zpfile(temp_file_path: str):
     with ZipFile(temp_file_path) as zip_file:
         print(zip_file.namelist())
         zpspec_contents = zip_file.read(zpspec_filename)
-        json_dict = json.loads(zpspec_contents, encoding='UTF-8')
+        json_dict = json.loads(zpspec_contents)
         return json_dict
 
 
@@ -73,7 +73,7 @@ class PackageManager:
         try:
             dir_exists = os.path.isdir(package_version_dir_path)
             if dir_exists:
-                print('Removing package ' + package_name + ' in version ' + package_version);
+                print('Removing package ' + package_name + ' in version ' + package_version)
                 shutil.rmtree(package_version_dir_path)
             with self._package_infos_lock:
                 self._remove_version_to_package_info(package_name, package_version)

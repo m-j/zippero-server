@@ -38,7 +38,7 @@ class AddPackagesHandler(ZipperoBaseHandler):
     async def prepare(self):
         self._privilege_validator.assure_readwrite_access(self.request)
 
-        self.request.connection.set_max_body_size(1024**3)
+        self.request.connection.set_max_body_size(3*(1024**3))
         content_type = self.request.headers.get('Content-Type')
         print(content_type)
         self._start_time = time()
@@ -48,16 +48,23 @@ class AddPackagesHandler(ZipperoBaseHandler):
     async def data_received(self, chunk):
         try:
             await self._file.write(chunk)
-        except:
+        except Exception as ex:
             await self._file.close()
             self._file = None
-            raise
+            ZipperoBaseHandler.write_error_response(self, type(ex), ex)
+            self.finish()
+            raise ex
 
     async def post(self):
-        if self._file:
-            await self._file.close()
+        try:
+            if self._file:
+                await self._file.close()
+        except Exception as ex:
+            ZipperoBaseHandler.write_error_response(self, type(ex), ex)
+            self.finish()
+            raise ex
 
-        logging.info(f'Body prcessed in {(time() - self._start_time)}s')
+        logging.info(f'Body processed in {(time() - self._start_time)}s')
 
         if not self._temp_file_path:
             self.set_status(400)
