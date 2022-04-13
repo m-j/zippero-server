@@ -5,14 +5,15 @@ from tornado.web import RequestHandler
 
 from errors.error_codes import ErrorCodes
 from errors.errors import ZipperoError
+from package_management.utils import coalesce
 
 
 class ZipperoBaseHandler(RequestHandler):
-    def write_generic_error(self):
+    def write_generic_error(self, err_message=None):
         self.set_status(500)
         self.write({
             'error_code': ErrorCodes.GENERAL.value,
-            'message': 'General error'
+            'message': coalesce(err_message, 'General error')
         })
 
     def write_error_response(self, type, err):
@@ -24,7 +25,9 @@ class ZipperoBaseHandler(RequestHandler):
             self.set_status(status_code=err.status_code)
             self.write(err.to_json())
         else:
-            self.write_generic_error()
+            err_message = f'Caught {type} error {str(err)}'
+            logging.error(err_message)
+            self.write_generic_error(err_message)
 
     def write_error(self, status_code, **kwargs):
         if 'exc_info' in kwargs:

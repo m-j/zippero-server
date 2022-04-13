@@ -1,4 +1,4 @@
-# ziprepo-server
+# zippero-server
 
 ## Installation
 

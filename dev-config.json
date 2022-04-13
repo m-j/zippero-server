@@ -1,0 +1,17 @@
+{
+  "server": {
+    "port": "7001"
+  },
+  "keys": {
+    "readonly": [],
+    "readwrite": []
+  },
+  "repository": {
+    "dataFolder": "./data"
+  },
+  "logsFolder": "./log",
+  "retention": {
+    "maxVersionsStoredPerPackage": "5",
+    "packagesCleanIntervalHours": "24"
+  }
+}
